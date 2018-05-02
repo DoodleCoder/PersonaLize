@@ -14,8 +14,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.conf.urls import url
 from django.urls import path
+from LizApp import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    url(r'^$', views.index),
+    url(r'^login/$', views.login_site),
+    url(r'^logout/$', views.logout_site),
+    url(r'^register/$', views.register),
+    url(r'^Urlshort/$', views.shortenUrl),
+    url(r'^Urllong/$', views.longUrl),
+    url(r'^myDiary/$', views.note),
+    url(r'^wallet/$', views.money),
 ]
