@@ -1,0 +1,9 @@
+1. chmod +x myecho.py
+2. ./myecho.py Hello, World!
+3. mv myecho.py myecho
+4. ./myecho Hello, World!
+5. mkdir -p ~/bin
+6. cp myecho ~/bin
+export PATH=$PATH":$HOME/bin"
+echo 'export PATH=$PATH":$HOME/bin"' >> .profile
+source .profile
