@@ -6,9 +6,11 @@ from nltk.tokenize import word_tokenize
 import random
 from pyshorteners import Shortener
 import requests
+import speedtest
 
+st = speedtest.Speedtest()
 stop_words = set(stopwords.words('english'))
-stop = ["stop listening","sleep","stop functioning", "exit", "shutdown", "shut down", "power off","stop","off"]
+stop = ["stop listening","sleep","stop functioning", "exit", "shutdown", "shut down", "power off","stop","off","close"]
 yes = ['At once sir','Sure','On it','Alright sir']
 api_key_url = 'AIzaSyDJDbHcXB-tC9nm5kZGy-i9Vc-AgXXIApI'
 shortener = Shortener('Google', api_key=api_key_url)
@@ -57,7 +59,14 @@ def main():
 					if flag==0:
 						print "Sorry sir, cannot expand this url"
 
-			
+				#speedtest
+				if i in ['server','speed','network','connection','download','upload','ping','speedtest']:
+					print "BEST SERVER: " + st.get_best_server()['url'] 
+					print "DOWNLOAD: " + str(st.download()/(1024*1024)) + " MBPS"
+					print "UPLOAD: " + str(st.upload()/(1024*1024)) +  " MBPS"
+
+
+
 			print "\nWhat would you like me to do?"
 		
 	if command.lower() in stop:
