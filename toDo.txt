@@ -1,0 +1,15 @@
+Done:
+	Chatbot
+	URL
+	speedtest
+	google search results
+Left:
+	Diary
+	Wallet
+	Weather
+	inline calculator
+	send emais
+	display calendar
+Tipsy:
+	alarm and timers
+	Flashcards - pyflashcards
