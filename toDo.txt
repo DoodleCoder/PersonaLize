@@ -3,13 +3,13 @@ Done:
 	URL
 	speedtest
 	google search results
+	display calendar
+	send emails
 Left:
 	Diary
 	Wallet
 	Weather
 	inline calculator
-	send emais
-	display calendar
 Tipsy:
 	alarm and timers
 	Flashcards - pyflashcards

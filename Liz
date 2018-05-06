@@ -8,6 +8,23 @@ from pyshorteners import Shortener
 import requests
 import speedtest
 import json
+import urllib2
+import math
+import re
+from bs4 import BeautifulSoup
+from pprint import pprint
+from time import sleep
+from googlesearch.googlesearch import GoogleSearch as gs
+import calendar
+from datetime import datetime as d
+import smtplib
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
+from email.MIMEBase import MIMEBase
+from email import encoders
+import getpass
+
+
 try:
     import apiai
 except ImportError:
@@ -17,9 +34,7 @@ except ImportError:
     import apiai
 
 
-
 CLIENT_ACCESS_TOKEN_APIAI = 'd9a374098afd43a9828fc039c34ab5f2'
-
 st = speedtest.Speedtest()
 stop_words = set(stopwords.words('english'))
 stop = ["stop listening","sleep","stop functioning", "exit", "shutdown", "shut down", "power off","stop","off","close"]
@@ -60,7 +75,7 @@ def main():
 				if command not in stop:
 					for i in command_words:
 
-					#shorten_url
+                        #shorten_url
 						if i in ['shorten','short','small','smaller']:
 							flag=0
 							print random.choice(yes)
@@ -75,7 +90,7 @@ def main():
 								reply = "Sorry sir, cannot shorten this url"
 							continue
 
-					#expand_url
+                        #expand_url
 						elif i in ['expand','enlarge','big','large']:
 							flag=0
 							print random.choice(yes)
@@ -95,11 +110,72 @@ def main():
 							if flag==0:
 								reply = "Sorry sir, cannot expand this url"
 
-					#speedtest
+                        #speedtest
 						elif i in ['server','speed','network','connection','download','upload','ping','speedtest']:
 							print random.choice(yes)
 							reply =  "BEST SERVER: " + st.get_best_server()['url'] + "\nDOWNLOAD: " + str(st.download()/(1024*1024)) + " MBPS\nUPLOAD: " + str(st.upload()/(1024*1024)) +  " MBPS"
-					
+						
+						#calendar
+						elif i in ['datetime','date','month','calendar','year','time']:
+							print random.choice(yes)
+							w=command.split(i+" ")[1]
+							c=command.split(i+" ")[0]
+							y=d.now().year
+							m=d.now().month
+							d=d.now().day	
+							c = calendar.TextCalendar(calendar.SUNDAY)
+							cal = c.formatmonth(y, m)
+							print cal
+							print "NOW : "
+							reply = str(d)+"/"+str(m)+"/"+str(y)+" - "+str(d.now().hour)+":"+str(d.now().minute)
+						
+						#email
+						elif i in ['mail','email','attach','electronic-mail']:
+							print random.choice(yes)
+							fromaddr = raw_input("~Enter Your Email Address: ")
+							pas = getpass.getpass()
+							toaddr = raw_input("~Enter Reciever's Email Address: ")							 
+							msg = MIMEMultipart()
+							msg['From'] = fromaddr
+							msg['To'] = toaddr
+							msg['Subject'] = raw_input("~Enter the subject of the mail: ")	
+							body = raw_input("~Enter the body of the mail: ")
+							part1 = MIMEText(body,'plain')
+							msg.attach(MIMEText(body, 'plain'))
+							choice = raw_input("~Enter 1 to make an attachment: ")
+							if choice == "1":
+								filename = raw_input("~Enter the name of the attachment: ")
+								path_to_file = raw_input("~Enter the path to the attachment: ")
+								attachment = open(path_to_file, "rb")
+								part = MIMEBase('application', 'octet-stream')
+								part.set_payload((attachment).read())
+								encoders.encode_base64(part)
+								part.add_header('Content-Disposition', "attachment; filename= %s" % filename)
+								msg.attach(part)					 
+							server = smtplib.SMTP('smtp.gmail.com', 587)
+							server.starttls()
+							server.login(fromaddr, pas)
+							text = msg.as_string()
+							server.sendmail(fromaddr, toaddr, text)
+							server.quit()
+							print "Mail successfully sent!"
+							reply=""
+							break
+
+						#googlesearch
+						elif i in ['google','search','look up','find']:
+							print random.choice(yes)
+							w = command.split(i+" ")
+							word = w[1]
+							resp = gs().search(word)
+							allr = resp.results
+							i=1
+							if len(allr) > 10:
+								allr = allr[:10]
+							for r in allr:
+								print  str(i) + ". " + r.title + " - " + r.url 								
+								i+=1
+							reply="There are " + str(i-1) + " matching results"
 			print reply
 			reply = ""
 
