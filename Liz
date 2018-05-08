@@ -16,13 +16,15 @@ from pprint import pprint
 from time import sleep
 from googlesearch.googlesearch import GoogleSearch as gs
 import calendar
-from datetime import datetime as d
+from datetime import datetime as dt
 import smtplib
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 from email.MIMEBase import MIMEBase
 from email import encoders
 import getpass
+import sqlite3
+
 
 
 try:
@@ -37,7 +39,7 @@ except ImportError:
 CLIENT_ACCESS_TOKEN_APIAI = 'd9a374098afd43a9828fc039c34ab5f2'
 st = speedtest.Speedtest()
 stop_words = set(stopwords.words('english'))
-stop = ["stop listening","sleep","stop functioning", "exit", "shutdown", "shut down", "power off","stop","off","close"]
+stop = ["stop listening","sleep","stop functioning", "bye", "exit", "shutdown", "shut down", "power off","stop","off","close"]
 yes = ['At once sir','Sure','On it','Alright sir']
 api_key_url = 'AIzaSyDJDbHcXB-tC9nm5kZGy-i9Vc-AgXXIApI'
 shortener = Shortener('Google', api_key=api_key_url)
@@ -118,16 +120,23 @@ def main():
 						#calendar
 						elif i in ['datetime','date','month','calendar','year','time']:
 							print random.choice(yes)
-							w=command.split(i+" ")[1]
-							c=command.split(i+" ")[0]
-							y=d.now().year
-							m=d.now().month
-							d=d.now().day	
+							y=dt.now().year
+							m=dt.now().month
+							d=dt.now().day	
 							c = calendar.TextCalendar(calendar.SUNDAY)
 							cal = c.formatmonth(y, m)
 							print cal
+							hour = dt.now().hour
+							half = ' AM'
+							if hour > 12:
+								hour -= 12
+								half = ' PM'
+							minute = dt.now().minute
+							if minute < 10:
+								minute = "0"+str(minute)
+							time = str(hour)+":"+ str(minute) + half
 							print "NOW : "
-							reply = str(d)+"/"+str(m)+"/"+str(y)+" - "+str(d.now().hour)+":"+str(d.now().minute)
+							reply = str(d)+"/"+str(m)+"/"+str(y)+" - "+ time
 						
 						#email
 						elif i in ['mail','email','attach','electronic-mail']:
@@ -162,20 +171,133 @@ def main():
 							reply=""
 							break
 
+						#weather
+						elif i in ['weather','weathers','condition','temperature','hot','cold']:
+							print random.choice(yes)
+							place = command.split(i+" of ")[1] #raw_input('~Enter the name of city: ')
+							r = requests.get('http://api.openweathermap.org/data/2.5/weather?q='+place+'&APPID=eaa27a7b42b031a60e68312e9a689569')
+							a = r.json()
+							temp = str(int(a['main']['temp']) - 273)
+							print "Weather conditions of "+place+" is: " + a['weather'][0]['description'] + "\nTemperature: " + temp + "\nHumidity: " + str(a['main']['humidity']) +  "\nPressure : "+str(a['main']['pressure']) + "\nWind : " + str(a['wind']['speed'])
+							reply = ""
+							break
+
+						#diary
+						elif i in ['note down','write down','jot down','jot','write','note']:
+							print random.choice(yes)
+							db = sqlite3.connect('diary.db')
+							c = db.cursor()
+							try:
+								c.execute(''' CREATE TABLE note(id INTEGER PRIMARY KEY, d TEXT, t TEXT, entry TEXT)
+								''')
+								db.commit()
+							except:
+								pass
+							c = db.cursor()
+							day = dt.now().day
+							month = dt.now().month
+							year = dt.now().year
+							dateNote = str(day)+"/"+str(month)+"/"+str(year)
+							hourNote = dt.now().hour
+							half = ' AM'
+							if hourNote > 12:
+								hourNote -= 12
+								half = ' PM'
+							minuteNote = dt.now().minute
+							if minuteNote < 10:
+								minuteNote = "0"+str(minuteNote)
+							timeNote = str(hourNote)+":"+ str(minuteNote) + half
+							textNote = str(raw_input("What should I note down sir? "))
+							c.execute(''' INSERT INTO note(d, t, entry)
+                  					VALUES(?,?,?) ''', (dateNote, timeNote, textNote))
+							db.commit()
+							print('Sucessfully noted down sir!')
+							ch = raw_input('~Enter 1 to view all notes: ')
+							if ch == '1':
+								c.execute('''SELECT * FROM note ORDER BY d,t''')
+								allNotes = c.fetchall()
+								print "Date \t\tTime \t\tText"
+								for i in allNotes:
+									print str(i[1])+" \t"+str(i[2])+" \t"+str(i[3])
+							reply=""
+							break
+
+						#wallet
+						elif i in ['wallet','transaction','money','balance']:
+							print random.choice(yes)
+							db2 = sqlite3.connect('wallet.db')
+							c = db2.cursor()
+							try:
+								c.execute(''' CREATE TABLE wallet(id INTEGER PRIMARY KEY, d TEXT, details TEXT,  type TEXT, amount INTEGER, balance INTEGER)
+								''')
+								c = db2.cursor()
+								date0 = '05/05/2018'
+								detail0 = 'Open'
+								type0 = 'O'
+								amount = 0
+								balance = 0
+								c.execute(''' INSERT INTO wallet(details, d, type, amount, balance)
+								              VALUES(?,?,?,?,?) ''', (detail0,date0,type0,amount,balance))
+								db2.commit()
+							except:
+								pass
+
+							if command in ['show balance','display balance','money left','balance']:
+								c.execute("SELECT * FROM wallet ORDER BY id DESC LIMIT 1")
+								result = c.fetchone()
+								balance = result[5]
+								print "Current Balance is : " + str(balance)
+								reply = ''
+								break
+							else:
+								c = db2.cursor()
+								print "------------Transaction Details------------"
+								date1 = raw_input('~Enter the date (dd/mm/yyyy) : ')
+								detail1 = raw_input('~Enter the details : ')
+								type1 = raw_input('~Enter C/D for Credit/Debit : ')
+								while type1 not in ['C','D']:
+									print "Wrong input"
+									type1 = raw_input('~Enter C/D for Credit/Debit : ')	
+								amount1 = int(raw_input('~Enter the amount : '))
+								c.execute("SELECT * FROM wallet ORDER BY id DESC LIMIT 1")
+								result = c.fetchone()
+								balance = result[5]
+								if type1 == 'C':
+									balance+=amount1
+								else:
+									balance-=amount1
+								c.execute(''' INSERT INTO wallet(details, d, type, amount, balance)
+								              VALUES(?,?,?,?,?) ''', (detail1,date1,type1,amount1,balance))
+								db2.commit()
+								print "-------------------------------------------"
+							ch2 = raw_input('Enter 1 to view wallet transactions: ')
+							if ch2 =='1':
+								c.execute('''SELECT * FROM wallet''')
+								allTx = c.fetchall()
+								print "ID \tDate \t\tDetails \tType \tAmount \tBalance"
+								for i in allTx:
+									print str(i[0])+" \t"+str(i[1])+" \t"+str(i[2])+" \t\t"+str(i[3])+" \t"+str(i[4])+" \t"+str(i[5])
+							reply = ""
+							break
+
 						#googlesearch
 						elif i in ['google','search','look up','find']:
 							print random.choice(yes)
 							w = command.split(i+" ")
 							word = w[1]
-							resp = gs().search(word)
-							allr = resp.results
-							i=1
-							if len(allr) > 10:
-								allr = allr[:10]
-							for r in allr:
-								print  str(i) + ". " + r.title + " - " + r.url 								
-								i+=1
-							reply="There are " + str(i-1) + " matching results"
+							try:
+								resp = gs().search(word)
+								allr = resp.results
+								i=1
+								if len(allr) > 10:
+									allr = allr[:10]
+								for r in allr:
+									print  str(i) + ". " + r.title + " - " + r.url 								
+									i+=1
+								reply="There are " + str(i-1) + " matching results"
+							except:
+								pass
+
 			print reply
 			reply = ""
 

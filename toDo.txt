@@ -5,11 +5,14 @@ Done:
 	google search results
 	display calendar
 	send emails
-Left:
+	Weather
 	Diary
 	Wallet
-	Weather
+
+Left:
 	inline calculator
+	pychalk
+	
 Tipsy:
 	alarm and timers
 	Flashcards - pyflashcards
