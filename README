@@ -9,3 +9,4 @@ Execute these lines in terminal:
 	export PATH=$PATH":$HOME/bin"
 	echo 'export PATH=$PATH":$HOME/bin"' >> .profile
 	source .profile
+
