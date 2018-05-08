@@ -24,7 +24,7 @@ from email.MIMEBase import MIMEBase
 from email import encoders
 import getpass
 import sqlite3
-
+import chalk
 
 
 try:
@@ -50,14 +50,14 @@ fallback = ["I didn't get that. Can you say it again?","I missed what you said. 
 @click.command()
 def main():
 	command=""
-	print "Yes sir?"
+	print chalk.blue("Yes sir?")
 	while 1:
 		if command.lower() in stop:
 			break
 		else:
 			global reply 
 			reply = ""
-			print "\nWhat would you like me to do?"
+			print chalk.cyan("\nWhat would you like me to do?")
 			command = raw_input('> ')
 			try:
 				ai = apiai.ApiAI(CLIENT_ACCESS_TOKEN_APIAI)
@@ -80,22 +80,26 @@ def main():
                         #shorten_url
 						if i in ['shorten','short','small','smaller']:
 							flag=0
-							print random.choice(yes)
+							print chalk.yellow(random.choice(yes))
 							for i in command_words:
 								try:
 									url = 'http://'+i
 									reply = "\rThe shortened url is {}".format(shortener.short(url))
+									print chalk.green(reply)
 									flag=1
 								except :
 									pass
+							
 							if flag==0:
 								reply = "Sorry sir, cannot shorten this url"
-							continue
+								print chalk.red(reply)
+							reply=''
+							break
 
                         #expand_url
 						elif i in ['expand','enlarge','big','large']:
 							flag=0
-							print random.choice(yes)
+							print chalk.yellow(random.choice(yes))
 							for i in command_words:
 								try:
 									url = i
@@ -105,27 +109,35 @@ def main():
 										url = url_start+i
 										reply = "The expanded url is {}".format(shortener.expand(url))
 									flag=1
+									print chalk.green(reply)
 				
 								except :
 									pass
 
 							if flag==0:
 								reply = "Sorry sir, cannot expand this url"
+								print chalk.red(reply)
+
+							reply = ''
+							break
 
                         #speedtest
 						elif i in ['server','speed','network','connection','download','upload','ping','speedtest']:
-							print random.choice(yes)
+							print chalk.yellow(random.choice(yes))
 							reply =  "BEST SERVER: " + st.get_best_server()['url'] + "\nDOWNLOAD: " + str(st.download()/(1024*1024)) + " MBPS\nUPLOAD: " + str(st.upload()/(1024*1024)) +  " MBPS"
+							print chalk.green(reply)
+							reply = ''
+							break
 						
 						#calendar
 						elif i in ['datetime','date','month','calendar','year','time']:
-							print random.choice(yes)
+							print chalk.yellow(random.choice(yes))
 							y=dt.now().year
 							m=dt.now().month
 							d=dt.now().day	
 							c = calendar.TextCalendar(calendar.SUNDAY)
 							cal = c.formatmonth(y, m)
-							print cal
+							print chalk.blue(cal)
 							hour = dt.now().hour
 							half = ' AM'
 							if hour > 12:
@@ -135,12 +147,15 @@ def main():
 							if minute < 10:
 								minute = "0"+str(minute)
 							time = str(hour)+":"+ str(minute) + half
-							print "NOW : "
+							print chalk.green("NOW : ")
 							reply = str(d)+"/"+str(m)+"/"+str(y)+" - "+ time
-						
+							print chalk.green(reply)
+							reply =''
+							break
+
 						#email
 						elif i in ['mail','email','attach','electronic-mail']:
-							print random.choice(yes)
+							print chalk.yellow(random.choice(yes))
 							fromaddr = raw_input("~Enter Your Email Address: ")
 							pas = getpass.getpass()
 							toaddr = raw_input("~Enter Reciever's Email Address: ")							 
@@ -167,24 +182,29 @@ def main():
 							text = msg.as_string()
 							server.sendmail(fromaddr, toaddr, text)
 							server.quit()
-							print "Mail successfully sent!"
+							print chalk.green("Mail successfully sent!")
 							reply=""
 							break
 
 						#weather
 						elif i in ['weather','weathers','condition','temperature','hot','cold']:
-							print random.choice(yes)
-							place = command.split(i+" of ")[1] #raw_input('~Enter the name of city: ')
+							print chalk.yellow(random.choice(yes))
+							try:
+								place = command.split(i+" of ")[1] #raw_input('~Enter the name of city: ')
+							except:
+								place = command.split(i)[1]
+							if place == '':
+								place = raw_input('~Enter the name of the city: ')
 							r = requests.get('http://api.openweathermap.org/data/2.5/weather?q='+place+'&APPID=eaa27a7b42b031a60e68312e9a689569')
 							a = r.json()
 							temp = str(int(a['main']['temp']) - 273)
-							print "Weather conditions of "+place+" is: " + a['weather'][0]['description'] + "\nTemperature: " + temp + "\nHumidity: " + str(a['main']['humidity']) +  "\nPressure : "+str(a['main']['pressure']) + "\nWind : " + str(a['wind']['speed'])
+							print chalk.green("Weather conditions of "+place+" is: " + a['weather'][0]['description'] + "\nTemperature: " + temp + "\nHumidity: " + str(a['main']['humidity']) +  "\nPressure : "+str(a['main']['pressure']) + "\nWind : " + str(a['wind']['speed']))
 							reply = ""
 							break
 
 						#diary
-						elif i in ['note down','write down','jot down','jot','write','note']:
-							print random.choice(yes)
+						elif i in ['note down','write down','jot down','jot','write','note','diary']:
+							print chalk.yellow(random.choice(yes))
 							db = sqlite3.connect('diary.db')
 							c = db.cursor()
 							try:
@@ -211,20 +231,20 @@ def main():
 							c.execute(''' INSERT INTO note(d, t, entry)
                   					VALUES(?,?,?) ''', (dateNote, timeNote, textNote))
 							db.commit()
-							print('Sucessfully noted down sir!')
+							print chalk.green('Sucessfully noted down sir!')
 							ch = raw_input('~Enter 1 to view all notes: ')
 							if ch == '1':
 								c.execute('''SELECT * FROM note ORDER BY d,t''')
 								allNotes = c.fetchall()
-								print "Date \t\tTime \t\tText"
+								print chalk.yellow("Date \t\tTime \t\tText")
 								for i in allNotes:
-									print str(i[1])+" \t"+str(i[2])+" \t"+str(i[3])
+									print chalk.blue(str(i[1])+" \t"+str(i[2])+" \t"+str(i[3]))
 							reply=""
 							break
 
 						#wallet
 						elif i in ['wallet','transaction','money','balance']:
-							print random.choice(yes)
+							print chalk.yellow(random.choice(yes))
 							db2 = sqlite3.connect('wallet.db')
 							c = db2.cursor()
 							try:
@@ -242,16 +262,23 @@ def main():
 							except:
 								pass
 
-							if command in ['show balance','display balance','money left','balance']:
+							if command in ['show balance','display balance','money left','balance','wallet','wallet balance']:
 								c.execute("SELECT * FROM wallet ORDER BY id DESC LIMIT 1")
 								result = c.fetchone()
 								balance = result[5]
-								print "Current Balance is : " + str(balance)
+								print chalk.green("Current Balance is : " + str(balance))
+								ch2 = raw_input('Enter 1 to view wallet transactions: ')
+								if ch2 =='1':
+									c.execute('''SELECT * FROM wallet''')
+									allTx = c.fetchall()
+									print chalk.yellow("ID \tDate \t\tDetails \tType \tAmount \tBalance")
+									for i in allTx:
+										print chalk.blue(str(i[0])+" \t"+str(i[1])+" \t"+str(i[2])+" \t\t"+str(i[3])+" \t"+str(i[4])+" \t"+str(i[5]))
 								reply = ''
 								break
 							else:
 								c = db2.cursor()
-								print "------------Transaction Details------------"
+								print chalk.white("------------Transaction Details------------")
 								date1 = raw_input('~Enter the date (dd/mm/yyyy) : ')
 								detail1 = raw_input('~Enter the details : ')
 								type1 = raw_input('~Enter C/D for Credit/Debit : ')
@@ -272,17 +299,17 @@ def main():
 								print "-------------------------------------------"
 							ch2 = raw_input('Enter 1 to view wallet transactions: ')
 							if ch2 =='1':
-								c.execute('''SELECT * FROM wallet''')
-								allTx = c.fetchall()
-								print "ID \tDate \t\tDetails \tType \tAmount \tBalance"
-								for i in allTx:
-									print str(i[0])+" \t"+str(i[1])+" \t"+str(i[2])+" \t\t"+str(i[3])+" \t"+str(i[4])+" \t"+str(i[5])
-							reply = ""
+									c.execute('''SELECT * FROM wallet''')
+									allTx = c.fetchall()
+									print chalk.yellow("ID \tDate \t\tDetails \tType \tAmount \tBalance")
+									for i in allTx:
+										print chalk.blue(str(i[0])+" \t"+str(i[1])+" \t"+str(i[2])+" \t\t"+str(i[3])+" \t"+str(i[4])+" \t"+str(i[5]))
+							reply = ''
 							break
 
 						#googlesearch
 						elif i in ['google','search','look up','find']:
-							print random.choice(yes)
+							print chalk.yellow(random.choice(yes))
 							w = command.split(i+" ")
 							word = w[1]
 							try:
@@ -292,17 +319,19 @@ def main():
 								if len(allr) > 10:
 									allr = allr[:10]
 								for r in allr:
-									print  str(i) + ". " + r.title + " - " + r.url 								
+									print  chalk.blue(str(i) + ". " + r.title + " - " + r.url) 								
 									i+=1
 								reply="There are " + str(i-1) + " matching results"
+								print chalk.green(reply)
+								reply = ''
 							except:
 								pass
 
-			print reply
+			print chalk.red(reply)
 			reply = ""
 
 	if command.lower() in stop:
-		print "I'll not be listening now\n"
+		print chalk.blue("I'll not be listening now\n")
 
 if __name__=='__main__':
 	main()

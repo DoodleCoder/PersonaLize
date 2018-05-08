@@ -1,0 +1,7 @@
+chmod +x liz.py
+mv liz.py Liz
+mkdir -p ~/bin
+cp Liz ~/bin
+export PATH=$PATH":$HOME/bin"
+echo 'export PATH=$PATH":$HOME/bin"' >> .profile
+source .profile
