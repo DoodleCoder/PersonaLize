@@ -1,7 +1,11 @@
-chmod +x liz.py
-mv liz.py Liz
-mkdir -p ~/bin
-cp Liz ~/bin
-export PATH=$PATH":$HOME/bin"
-echo 'export PATH=$PATH":$HOME/bin"' >> .profile
-source .profile
+Install all dependencies:
+	pip install -r requirements.txt
+
+Execute these lines in terminal:
+	chmod +x liz.py
+	mv liz.py Liz
+	mkdir -p ~/bin
+	cp Liz ~/bin
+	export PATH=$PATH":$HOME/bin"
+	echo 'export PATH=$PATH":$HOME/bin"' >> .profile
+	source .profile
